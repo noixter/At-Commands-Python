@@ -2,8 +2,6 @@
 
 import serial
 import time
-# para enviar el Ctrl-Z
-from curses import ascii
 
 #modulo.open()
 NET = False
