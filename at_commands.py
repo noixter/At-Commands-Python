@@ -24,13 +24,16 @@ def setup(port, baud = int('9600'), apn = 'internet.movistar.com.co'):
             module.close()
         try:
             module.write('AT+CGATT=1\r\n'.encode())
-            time.sleep(0.1)
             module.write(('AT+CGDCONT=1,\"IP\",\"{}\"\r\n').format(apn).encode())
-            time.sleep(0.1)
             module.write(('AT+CGSOCKCONT=1,\"IP\",\"{}\"\r\n').format(apn).encode())
-            time.sleep(0.1)
             module.write(('AT+CSOCKSETPN=1\r\n').encode())
-            time.sleep(0.1)
+            module.write(('AT+CGPSURL=\"supl.google.com:7276\"\r\n').encode())
+            module.write(('AT+CGPSSSL=1\r\n').encode())
+            module.write(('AT+CGPS=1,3\r\n').encode())
+            if _valid_gps(module):
+                print ('GPS configurated')
+            else:
+                print ('GPS not configurated')
             print ('SIM53XX Configurated!')
         except serial.SerialException:
             print ('Something failed during configuration\rPlase try again...')
@@ -93,6 +96,32 @@ def send_post(data, serial_object, host, url):
             except serial.SerialException:
                 print ('Something goes wrong')
 
+def get_gpscoors(modulo):
+    modulo.write('AT+CGPSHOT\r\n'.encode())
+    gps = ''
+    lat = 0
+    lon = 0
+    search = False
+    pat = re.compile('\+CAGPSINFO:')
+    pat1 = re.compile('([0-9]+),(-[0-9]+)')
+    while not search:
+        while modulo.inWaiting() > 0:
+            gps += modulo.readline().decode()
+            print ('Obtaining GPS Coordenates')
+            if pat.search(gps):
+                search = True
+
+    print (gps)
+    match = pat1.search(gps)
+    if match:
+        lat = int(match.group(1))
+        lon = int(match.group(2))
+        
+    lat /= 100000000
+    lon /= 100000000
+
+    return lat,lon
+                
 def _read_line(modulo, pat = re.compile('')):
         import re
         res = ''
@@ -152,6 +181,20 @@ def _valid_send(serial_object, pat):
                     return True
                     searching = True
         return False
+
+def _valid_gps(modulo):
+    res = ''
+    searching = False
+    pat = re.compile('\+CGPS: 0')
+    while not searching:
+        while modulo.inWaiting() > 0:
+            res += modulo.readline().decode()
+            print ('Configurando GPS...')
+            if pat.search(res):
+                searching = True
+                return True
+            else:
+                continue
 
 def _open_serv(host, serial_object):
         searching = False
