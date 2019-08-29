@@ -1,12 +1,4 @@
-#!/usr/bin/env python 3
+import pynmea2
 
-input_commands=['AT+CMGS','AT+CIPSEND=0,','AT+CHTTP']
-
-command = input('Write a command: ')
-
-found = [comm for comm in input_commands if comm in command]
-
-if not found:
-    print ('not founded')
-else:
-    print ('founded')
+msg = pynmea2.parse('$GPGGA,0439.690603,N,07404.012174,W,270819,204027.0,2549.4,,')
+print (msg)

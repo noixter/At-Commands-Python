@@ -23,11 +23,16 @@ def setup(port, baud = int('9600'), apn = 'internet.movistar.com.co'):
             module.close()
         try:
             module.write('AT+CGATT=1\r\n'.encode())
-            module.write(('AT+CGDCONT=1,\"IP\",\"{}\"\r\n').format(apn).encode())
+            time.sleep(0.01)
+            module.write(('AT+CGDCONT=1,\"IP\",\"{}\"\r\n').format(apn).encode())           
+            time.sleep(0.01)
             module.write(('AT+CGSOCKCONT=1,\"IP\",\"{}\"\r\n').format(apn).encode())
             module.write(('AT+CSOCKSETPN=1\r\n').encode())
+            time.sleep(0.01)
             module.write(('AT+CGPSURL=\"supl.google.com:7276\"\r\n').encode())
+            time.sleep(0.1)
             module.write(('AT+CGPSSSL=1\r\n').encode())
+            time.sleep(0.1)
             #module.write(('AT+CGPS=1,3\r\n').encode())
             #time.sleep(0.2)
             #if _valid_gps(module):
@@ -98,6 +103,7 @@ def send_post(data, serial_object, host, url):
 
 def get_gpscoors(modulo):
     modulo.write('AT+CGPSHOT\r\n'.encode())
+    time.sleep(0.1)
     gps = ''
     lat = 0
     lon = 0
@@ -124,6 +130,7 @@ def get_gpscoors(modulo):
  
 def triangulation(modulo):
     modulo.write('AT+CASSISTLOC=1\r\n'.encode())
+    time.sleep(0.1)
     pat = re.compile('([0-9]+.[0-9]+),-([0-9]+.[0-9]+)')
     pat1 = re.compile('\+CASSISTLOC:')
     search = False
@@ -137,8 +144,8 @@ def triangulation(modulo):
 
     match = pat.search(res)
     if match:
-        lat = int(match.group(1))
-        lon = int(match.group(2))
+        lat = float(match.group(1))
+        lon = float(match.group(2))
     else:
         print ('No se encontraron Coordenadas')
 
