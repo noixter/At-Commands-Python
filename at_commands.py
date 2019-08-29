@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 import serial
 import time
@@ -19,7 +18,7 @@ def setup(port, baud = int('9600'), apn = 'internet.movistar.com.co'):
                 print ('Serial Port Available')
             else:
                 print ('Serial Port not Available')
-        except serial.SeriaException:
+        except serial.SerialException:
             print ('Something goes wrong')
             module.close()
         try:
@@ -29,11 +28,12 @@ def setup(port, baud = int('9600'), apn = 'internet.movistar.com.co'):
             module.write(('AT+CSOCKSETPN=1\r\n').encode())
             module.write(('AT+CGPSURL=\"supl.google.com:7276\"\r\n').encode())
             module.write(('AT+CGPSSSL=1\r\n').encode())
-            module.write(('AT+CGPS=1,3\r\n').encode())
-            if _valid_gps(module):
-                print ('GPS configurated')
-            else:
-                print ('GPS not configurated')
+            #module.write(('AT+CGPS=1,3\r\n').encode())
+            #time.sleep(0.2)
+            #if _valid_gps(module):
+            #    print ('GPS configurated')
+            #else:
+            #    print ('GPS not configurated')
             print ('SIM53XX Configurated!')
         except serial.SerialException:
             print ('Something failed during configuration\rPlase try again...')
@@ -71,9 +71,9 @@ def send_post(data, serial_object, host, url):
        host = ip address from remote host
        url = web resource
        """
-        datalen = len(data) + 4
+       datalen = len(data) + 4
         
-        if _open_serv(host, serial_object):
+       if _open_serv(host, serial_object):
             try:
                 serial_object.write(('AT+CIPSEND=0,\r\n').encode())
                 time.sleep(0.5)
@@ -121,6 +121,31 @@ def get_gpscoors(modulo):
     lon /= 100000000
 
     return lat,lon
+ 
+def triangulation(modulo):
+    modulo.write('AT+CASSISTLOC=1\r\n'.encode())
+    pat = re.compile('([0-9]+),-([0-9]+)')
+    pat1 = re.compile('\+CASSISTLOC:')
+    search = False
+    res = ''
+    print ('Calculating...')
+    while not search:
+        while modulo.inWaiting() > 0:
+            res += modulo.readline().decode()
+            if pat1.search(res):
+                search = True
+
+    match = pat.search(res)
+    if match:
+        lat = int(match.group(1))
+        lon = int(match.group(2))
+    else:
+        print ('No se encontraron Coordenadas')
+
+
+    return lat, lon
+
+
                 
 def _read_line(modulo, pat = re.compile('')):
         import re
@@ -216,7 +241,7 @@ def _open_serv(host, serial_object):
 
 
 def _welcome():
-        print ('WELCOME TO AT_COMMAND PROGRAMM')
+        print ('WELCOME TO AT_COMMAND PROGRAM')
         print ('*' * 50)
         print ('Choose from the following option')
         print ('Write \'EXIT\' to go out')
