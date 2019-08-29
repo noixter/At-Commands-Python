@@ -124,7 +124,7 @@ def get_gpscoors(modulo):
  
 def triangulation(modulo):
     modulo.write('AT+CASSISTLOC=1\r\n'.encode())
-    pat = re.compile('([0-9]+),-([0-9]+)')
+    pat = re.compile('([0-9]+.[0-9]+),-([0-9]+.[0-9]+)')
     pat1 = re.compile('\+CASSISTLOC:')
     search = False
     res = ''
